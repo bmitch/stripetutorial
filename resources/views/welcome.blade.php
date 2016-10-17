@@ -12,20 +12,40 @@
 
     <h1>Buy my book for $25.00</h1>
 
-    <form action="/purchases" method="POST">
+    <form id ="checkout-form" action="/purchases" method="POST">
       {{ csrf_field() }}
-      <script
-        src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-        data-key="{{ config('services.stripe.key') }}"
-        data-amount="2500"
-        data-name="Some book"
-        data-description="Everything you need to get started."
-        data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-        data-locale="auto"
-        data-zip-code="true"
-        data-currency="cad">
-      </script>
+      <input type="hidden" name="stripeToken" id="stripeToken">
+      <input type="hidden" name="stripeEmail" id="stripeEmail">
+      <button type="submit">Buy my book</button>
     </form>
 
+
+      <script src="https://checkout.stripe.com/checkout.js"></script>
+      <script>
+          let stripe = StripeCheckout.configure({
+            key: "{{ config('services.stripe.key') }}",
+            image: "https://stripe.com/img/documentation/checkout/marketplace.png",
+            locale: "auto",
+            token: function (token) {
+                document.querySelector('#stripeEmail').value = token.email;
+                document.querySelector('#stripeToken').value = token.id;
+
+                document.querySelector('#checkout-form').submit();
+            }
+          });
+
+          document.querySelector('button').addEventListener('click', function (e) {
+              stripe.open({
+                name: 'My Book',
+                description: 'Some details about the book.',
+                zipCode: true,
+                amount: 2500
+              });
+
+              e.preventDefault();
+
+          });
+          
+      </script>
     </body>
 </html>
